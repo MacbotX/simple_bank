@@ -1,0 +1,19 @@
+create a postgres docker container after installing the image
+download TablePlus connect to the postgres docker container
+get the golang migrate from github https://github.com/golang-migrate/migrate/tree/master/cmd/migrate
+
+create a db folder that holds the migration files
+mkdir -p db/migration
+then create the migration
+migrate create -ext sql -dir db/migration -seq init_schema
+which will create two migration files the up and down migration files
+
+create a database on docker 
+docker exec -it postgres17 /bin/sh
+this will open the shell command 
+createdb --username=root --owner=root simplebank
+using docker 
+docker exec -it postgres17 createdb --username=root --owner=root simple_bank
+
+download sqlc 
+then run sqlc init 
