@@ -22,5 +22,16 @@ migrateforce:
 sqlc:
 	sqlc generate
 
+test:
+	go test -v -cover ./...
 
-.PHONY: postgres createdb dropdb migrateup migratedown migratecheck migrateforce sqlc
+tidy:
+	go mod tidy
+
+push_github:
+	git add .
+	git commit -m "update"
+	git push origin main
+
+
+.PHONY: postgres createdb dropdb migrateup migratedown migratecheck migrateforce sqlc test tidy push_github
