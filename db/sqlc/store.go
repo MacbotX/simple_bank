@@ -3,45 +3,53 @@ package db
 import (
 	"context"
 	"fmt"
-	// "log"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 // Store struct encapsulates the database and queries
 type Store struct {
-	db      *pgx.Conn
+	db      *pgxpool.Pool
 	*Queries
 }
 
 // NewStore creates a new Store instance
-func NewStore(db *pgx.Conn) *Store {
+func NewStore(db *pgxpool.Pool) *Store {
 	return &Store{
 		db:      db,
-		Queries: New(db),
+		Queries: New(db), // Assuming New initializes queries from a pool or transaction
 	}
 }
 
-// exctx executes a function within a database transaction
+// execTx executes a function within a database transaction
 func (store *Store) execTx(ctx context.Context, fn func(*Queries) error) error {
     // Start a transaction with default options
-    tx, err := store.db.BeginTx(ctx, pgx.TxOptions{})
+    tx, err := store.db.BeginTx(ctx, pgx.TxOptions{}) // Ensure correct options usage from pgx/v5
     if err != nil {
-        return err
+        return fmt.Errorf("failed to begin transaction: %w", err)
     }
 
-    q := New(tx) // Initialize a new Queries object with the transaction
+    // Initialize a new Queries object with the transaction
+    q := New(tx) // Initialize with the transaction, not the pool
     err = fn(q)  // Execute the transactional function
 
     if err != nil {
+        // Attempt to rollback the transaction on error
         if rbErr := tx.Rollback(ctx); rbErr != nil {
-            return fmt.Errorf("tx error: %v, rollback error: %v", err, rbErr)
+            return fmt.Errorf("transaction error: %v, rollback error: %v", err, rbErr)
         }
         return err
     }
 
-    return tx.Commit(ctx) // Commit the transaction
+    // Commit the transaction on success
+    if err := tx.Commit(ctx); err != nil {
+        return fmt.Errorf("failed to commit transaction: %w", err)
+    }
+
+    return nil
 }
+
 
 type TransferTxParams struct {
 	FromAccountID 	int64 	`json:"from_account_id"`
@@ -90,8 +98,7 @@ func (store *Store) TransferTx(ctx context.Context, arg CreateTransferParams) (T
 		if err != nil {
 			return err
 		}
-
-		// Update account balance
+		
 
 		return nil 
 	})
