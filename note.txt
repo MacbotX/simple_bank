@@ -4,7 +4,8 @@ get the golang migrate from github https://github.com/golang-migrate/migrate/tre
 
 create a db folder that holds the migration files
 mkdir -p db/migration
-then create the migration
+
+then create the migration scheme
 migrate create -ext sql -dir db/migration -seq init_schema
 which will create two migration files the up and down migration files
 
@@ -12,6 +13,7 @@ create a database on docker
 docker exec -it postgres17 /bin/sh
 this will open the shell command 
 createdb --username=root --owner=root simplebank
+
 using docker 
 docker exec -it postgres17 createdb --username=root --owner=root simple_bank
 
